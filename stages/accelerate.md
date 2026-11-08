@@ -4,9 +4,6 @@ title:
   en: "Accelerate"
 kind: book
 author: "Forsgren, Humble, Kim"
-links:
-  - title: "DORA capabilities"
-    url: https://dora.dev/capabilities/
 ---
 <!-- pt -->
 ## Motivação

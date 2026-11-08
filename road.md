@@ -18,6 +18,7 @@ da próxima vira pausa no mapa, e a contagem cresce sozinha até você começar.
 ## Estrada
 
 - 2026-10-21 → 2026-10-22 · [[roadmap-v1]]
+- 2026-11-08 → 2026-11-08 · [[study-road]]
 
 ## Próximos
 
