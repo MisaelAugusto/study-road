@@ -1,0 +1,964 @@
+<title>Estrada de Estudos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Bricolage+Grotesque:opsz,wght@12..96,300..600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --sans: "Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+<style>
+/* Study road: a sketchbook overworld seen from above. One ink road, spaced by real days,
+   a coral car the scroll drives, and the world sketching itself in as the camera passes. */
+:root {
+  --paper: oklch(0.972 0.013 88);
+  --ink: oklch(0.27 0.02 55);
+  --pencil: oklch(0.6 0.016 70);
+  --wash: oklch(0.925 0.02 88);
+  --leaf: oklch(0.9 0.055 132);
+  --water: oklch(0.88 0.045 220);
+  --car: oklch(0.66 0.17 36);
+  --car-tint: oklch(0.93 0.045 40);
+  --rain: oklch(0.6 0.13 245);
+  --hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: oklch(0.2 0.012 65); --ink: oklch(0.93 0.016 85); --pencil: oklch(0.6 0.014 75);
+    --wash: oklch(0.255 0.014 70); --leaf: oklch(0.34 0.05 135); --water: oklch(0.33 0.045 230);
+    --car: oklch(0.72 0.15 38); --car-tint: oklch(0.32 0.06 38); --rain: oklch(0.74 0.1 240);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: oklch(0.2 0.012 65); --ink: oklch(0.93 0.016 85); --pencil: oklch(0.6 0.014 75);
+  --wash: oklch(0.255 0.014 70); --leaf: oklch(0.34 0.05 135); --water: oklch(0.33 0.045 230);
+  --car: oklch(0.72 0.15 38); --car-tint: oklch(0.32 0.06 38); --rain: oklch(0.74 0.1 240);
+}
+
+
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+.journey { position: relative; color: var(--ink); }
+.j-stage { position: sticky; top: env(safe-area-inset-top, 0px); height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); overflow: hidden; touch-action: pan-y; }
+.j-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.j-svg text { font-family: var(--hand); fill: var(--ink); }
+.j-svg .pen { fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; }
+.j-svg .pcl { fill: none; stroke: var(--pencil); stroke-linecap: round; stroke-linejoin: round; }
+
+/* doodles sketch themselves in when the camera first reaches them */
+.dd .dw { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .9s cubic-bezier(.5,0,.2,1) var(--d, 0s); }
+.dd .fl { opacity: 0; transition: opacity .8s ease calc(var(--d, 0s) + .35s); }
+.dd.on .dw { stroke-dashoffset: 0; }
+.dd.on .fl { opacity: 1; }
+
+.smoke { animation: smoke 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom center; }
+@keyframes smoke { 50% { transform: translate(2px, -3px) scale(1.08); opacity: .55; } }
+.ripple { animation: ripple 3.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes ripple { 50% { transform: scale(1.18); opacity: .35; } }
+.puff-breathe { animation: breathe 7s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes breathe { 50% { transform: scale(1.05) translateX(4px); } }
+.flag { animation: flag 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: left center; }
+@keyframes flag { 50% { transform: scaleX(.82) skewY(-6deg); } }
+.flapw { animation: flapw .5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes flapw { 50% { transform: scaleY(.45); } }
+.drop { stroke: var(--rain); stroke-width: 1.3; stroke-linecap: round; fill: none; opacity: .75; animation: fall 1s linear infinite; }
+@keyframes fall { 0% { transform: translate(0, -6px); opacity: 0; } 15% { opacity: .85; } 85% { opacity: .85; } 100% { transform: translate(-9px, 46px); opacity: 0; } }
+.splash { fill: none; stroke: var(--rain); stroke-width: 1; opacity: 0; animation: splash 1.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes splash { 0% { transform: scale(.3); opacity: .8; } 100% { transform: scale(1.8); opacity: 0; } }
+.shower { animation: drift 22s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: translateX(-30px); } to { transform: translateX(30px); } }
+.swim { animation: swim 9s ease-in-out infinite alternate; }
+@keyframes swim { from { transform: translateX(calc(-1 * var(--sw, 8px))); } to { transform: translateX(var(--sw, 8px)); } }
+.graze { animation: graze 5s ease-in-out infinite; transform-box: fill-box; transform-origin: left center; }
+@keyframes graze { 0%, 55%, 100% { transform: none; } 65%, 90% { transform: translateY(2.5px) rotate(18deg); } }
+.hop { animation: hop 3.2s ease-in-out infinite; }
+@keyframes hop { 0%, 70%, 100% { transform: none; } 78% { transform: translate(2px, -6px); } 86% { transform: translate(4px, 0); } 92% { transform: translate(5px, -3px); } }
+.flame { animation: flame .9s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
+@keyframes flame { from { transform: scale(.85, .8) skewX(-6deg); } to { transform: scale(1.08, 1.15) skewX(5deg); } }
+.zz { animation: zz 3.4s ease-in-out infinite; }
+@keyframes zz { 0% { transform: translate(0, 4px); opacity: 0; } 30%, 70% { opacity: .9; } 100% { transform: translate(8px, -10px); opacity: 0; } }
+.pulse-ring { animation: pring 2.2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pring { from { transform: scale(1); opacity: .7; } to { transform: scale(1.9); opacity: 0; } }
+
+.stop { cursor: pointer; outline: none; }
+.stop .lbl { transition: transform .35s cubic-bezier(.2,.8,.2,1); transform-box: fill-box; transform-origin: center; }
+.stop.near .lbl, .stop:hover .lbl, .stop:focus-visible .lbl { transform: scale(1.1); }
+.stop .uline { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .5s ease; }
+.stop.near .uline, .stop:hover .uline, .stop:focus-visible .uline { stroke-dashoffset: 0; }
+.stop:focus-visible .ring { stroke-width: 3.4; }
+
+/* HUD */
+.j-hud { position: absolute; z-index: 3; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+.j-hud > * { pointer-events: auto; }
+.j-title { font-family: var(--hand); line-height: .95; text-shadow: 0 0 4px var(--paper), 0 0 10px var(--paper), 0 0 16px var(--paper); }
+.j-title b { display: block; font-size: clamp(30px, 4.4vw, 46px); font-weight: 600; letter-spacing: -.01em; }
+.j-title span { display: block; font-size: 19px; color: var(--pencil); margin-top: 4px; }
+.j-date { display: inline-block; margin-top: 10px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink);
+  background: var(--paper); padding: 4px 9px; border: 1.5px solid var(--ink); border-radius: 255px 12px 225px 12px / 12px 225px 12px 255px; font-variant-numeric: tabular-nums; }
+.j-ctl { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.hbtn { font-family: var(--hand); font-size: 20px; line-height: 1; color: var(--ink); background: var(--paper); cursor: pointer; padding: 6px 12px 7px;
+  border: 1.8px solid var(--ink); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; box-shadow: 2px 3px 0 var(--ink);
+  transition: transform .15s ease, box-shadow .15s ease; white-space: nowrap; }
+.hbtn:hover { transform: translate(-1px, -1px) rotate(-1deg); box-shadow: 3px 4px 0 var(--ink); }
+.hbtn:active { transform: translate(2px, 3px); box-shadow: 0 0 0 var(--ink); }
+.hbtn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.hbtn:focus-visible { outline: 2px dashed var(--car); outline-offset: 3px; }
+.hseg { display: inline-flex; }
+.hseg .hbtn { box-shadow: none; padding-inline: 9px; }
+.hseg .hbtn:first-child { border-right-width: .9px; border-radius: 255px 4px 4px 15px / 15px 4px 4px 255px; }
+.hseg .hbtn:last-child { border-left-width: .9px; border-radius: 4px 15px 225px 4px / 4px 225px 15px 4px; }
+.hseg .hbtn:hover { transform: none; }
+
+.j-foot { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+.j-foot > * { pointer-events: auto; }
+.j-arrive { font-family: var(--hand); font-size: 22px; color: var(--ink); background: var(--paper); cursor: pointer;
+  border: 1.8px solid var(--ink); border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px; padding: 5px 16px 6px; box-shadow: 2px 3px 0 var(--car);
+  transition: opacity .3s ease, transform .3s cubic-bezier(.2,.8,.2,1); }
+.j-arrive[data-show="false"] { opacity: 0; transform: translateY(10px) rotate(-2deg); pointer-events: none; }
+.j-arrive em { font-style: normal; color: var(--car); }
+.j-strip { width: min(560px, 100%); height: 40px; display: block; overflow: visible; }
+.j-strip .tick { cursor: pointer; }
+.j-strip text { font-family: var(--hand); font-size: 15px; fill: var(--pencil); }
+.j-hint { font-family: var(--hand); font-size: 18px; color: var(--pencil); transition: opacity .6s; text-shadow: 0 0 6px var(--paper); }
+
+/* notes sheet */
+.j-note { position: fixed; z-index: 20; right: max(16px, env(safe-area-inset-right, 0px)); top: calc(78px + env(safe-area-inset-top, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  width: min(440px, calc(100vw - 32px)); overflow: auto; overscroll-behavior: contain; background: var(--paper); color: var(--ink);
+  border: 2px solid var(--ink); border-radius: 18px 255px 15px 225px / 225px 15px 255px 18px; box-shadow: 5px 6px 0 var(--ink);
+  padding: 22px 24px 26px; display: flex; flex-direction: column; gap: 14px; }
+.j-note .k { font-family: var(--hand); font-size: 20px; color: var(--pencil); }
+.j-note h2 { font-family: var(--hand); font-weight: 600; font-size: 40px; line-height: .95; margin: 0; text-wrap: balance; padding-right: 36px; }
+.j-note .when { font-family: var(--mono); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--pencil); font-variant-numeric: tabular-nums; }
+.j-note .when b { color: var(--car); font-weight: 500; }
+.j-note .md { font-size: 15px; line-height: 1.6; max-width: 62ch; }
+.j-note .md h2 { font-family: var(--hand); font-size: 27px; font-weight: 600; line-height: 1; margin: 16px 0 6px; padding: 0; text-transform: none; letter-spacing: 0; color: var(--ink); }
+.j-note .md em { color: var(--pencil); }
+.j-note .md p { margin: 0 0 10px; }
+.j-note .md a, .j-note .refs a { color: inherit; text-decoration-color: var(--car); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.j-note .sec { font-family: var(--hand); font-size: 24px; font-weight: 600; margin: 4px 0 -4px; }
+.j-note .refs { margin: 0; padding-left: 18px; font-size: 14.5px; line-height: 1.55; display: flex; flex-direction: column; gap: 4px; }
+.j-note .x { position: absolute; top: 14px; right: 16px; width: 36px; height: 36px; border: 0; background: none; cursor: pointer; color: var(--ink); padding: 0; }
+.j-note .x svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.j-note .x:focus-visible { outline: 2px dashed var(--car); border-radius: 8px; }
+@media (max-width: 640px) {
+  .j-note { top: auto; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); width: auto; max-height: 74dvh; border-radius: 20px 225px 6px 6px / 120px 15px 6px 6px; }
+  .j-hint { display: none; }
+  .j-date { margin-top: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dd .dw { stroke-dashoffset: 0 !important; transition: none !important; }
+  .dd .fl { opacity: 1 !important; transition: none !important; }
+}
+</style>
+
+<section class="journey" id="journey" aria-label="Study road">
+  <div class="j-stage" id="j-stage">
+    <svg class="j-svg" id="j-svg" role="img" aria-labelledby="j-svg-t">
+      <title id="j-svg-t">Study road</title>
+      <defs>
+        <pattern id="j-dots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="var(--pencil)" opacity=".28"/></pattern>
+      </defs>
+      <g id="j-cam">
+        <rect id="j-ground" fill="url(#j-dots)"/>
+        <g id="j-scenery"></g>
+        <g id="j-roadbed"></g>
+        <g id="j-pencil"></g>
+        <g id="j-ink"></g>
+        <g id="j-signs"></g>
+        <g id="j-weather"></g>
+        <g id="j-stops"></g>
+        <g id="j-dust"></g>
+        <g id="j-carg"></g>
+        <g id="j-fog"></g>
+      </g>
+    </svg>
+    <div class="j-hud">
+      <div class="j-title">
+        <b id="j-h"></b>
+        <span id="j-sub"></span>
+        <div class="j-date" id="j-date" aria-live="polite"></div>
+      </div>
+      <div class="j-ctl">
+        <button type="button" class="hbtn" id="j-now"></button>
+        <div class="hseg" role="group" aria-label="Idioma / Language">
+          <button type="button" class="hbtn" id="j-pt" data-jlang="pt">PT</button>
+          <button type="button" class="hbtn" id="j-en" data-jlang="en">EN</button>
+        </div>
+      </div>
+    </div>
+    <div class="j-foot">
+      <button type="button" class="j-arrive" id="j-arrive" data-show="false"></button>
+      <svg class="j-strip" id="j-strip" viewBox="0 0 560 40" aria-hidden="true"></svg>
+      <div class="j-hint" id="j-hint"></div>
+    </div>
+  </div>
+  <div id="j-track" aria-hidden="true"></div>
+  <aside class="j-note" id="j-note" hidden role="dialog" aria-modal="false" aria-labelledby="j-note-t"></aside>
+</section>
+
+<script>
+const DATA = /*__DATA__*/null;
+</script>
+<script>
+(() => {
+const JT = {
+  pt: {
+    h: "Estrada de estudos", sub: "diário de engenharia", now: "Hoje",
+    hint: "role para trás e veja a história, para frente e veja o que vem", soon: "em breve", building: "em construção", fog: "a estrada continua...",
+    days: n => n === 1 ? "1 dia" : `${n} dias`, day: n => `dia ${n}`, since: "desde", today: "hoje", next: "próximo",
+    inProgress: "em andamento", started: "começou", openNotes: "ver notas", arrive: "Você está em",
+    refs: "Referências", onMap: "No roadmap", close: "Fechar", noNotes: "Ainda sem notas.", gap: n => `${n} dias depois`, idle: "pausa", idleDays: n => `pausa · ${n === 1 ? "1 dia" : n + " dias"}`,
+    kinds: { book: "livro", video: "vídeos", article: "artigo", guide: "guia", course: "curso", project: "projeto", talk: "palestra" },
+    months: ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
+  },
+  en: {
+    h: "Study road", sub: "engineering log", now: "Today",
+    hint: "scroll back for the history, forward for what's next", soon: "coming up", building: "under construction", fog: "the road goes on...",
+    days: n => n === 1 ? "1 day" : `${n} days`, day: n => `day ${n}`, since: "since", today: "today", next: "next",
+    inProgress: "in progress", started: "started", openNotes: "open notes", arrive: "You're at",
+    refs: "References", onMap: "On the roadmap", close: "Close", noNotes: "No notes yet.", gap: n => `${n} days later`, idle: "break", idleDays: n => `break · ${n === 1 ? "1 day" : n + " days"}`,
+    kinds: { book: "book", video: "videos", article: "article", guide: "guide", course: "course", project: "project", talk: "talk" },
+    months: ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+  }
+};
+let lang = null;
+const L = () => lang === "en" ? "en" : "pt";
+const T = () => JT[L()];
+const NS = "http://www.w3.org/2000/svg";
+const RMo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $j = id => document.getElementById(id);
+const escJ = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sget = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const sset = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+lang = sget("rm-lang") || ((navigator.language || "pt").toLowerCase().startsWith("pt") ? "pt" : "en");
+
+/* ---------- tiny drawing kit ---------- */
+function rng(seed) { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let R = rng(7);
+const J = (k = 1) => (R() - .5) * 2 * k;
+const f1 = n => Math.round(n * 10) / 10;
+function wob(pts, j = 1.2, closed = false) {
+  const o = pts.map(([x, y]) => [x + J(j), y + J(j)]);
+  if (o.length < 3) return `M${f1(o[0][0])} ${f1(o[0][1])}` + o.slice(1).map(p => ` L${f1(p[0])} ${f1(p[1])}`).join("");
+  let d = `M${f1(o[0][0])} ${f1(o[0][1])}`;
+  for (let i = 1; i < o.length - 1; i++) { const m = [(o[i][0] + o[i + 1][0]) / 2, (o[i][1] + o[i + 1][1]) / 2]; d += ` Q${f1(o[i][0])} ${f1(o[i][1])} ${f1(m[0])} ${f1(m[1])}`; }
+  const e = o[o.length - 1]; d += ` L${f1(e[0])} ${f1(e[1])}`;
+  return closed ? d + " Z" : d;
+}
+function seg(pts, j = .9) { const o = pts.map(([x, y]) => [x + J(j), y + J(j)]); return "M" + o.map(p => `${f1(p[0])} ${f1(p[1])}`).join(" L"); }
+function ring(rx, ry = rx, j = 1.2, turns = 1.07, n = 0) {
+  n = n || Math.max(10, Math.round(rx / 2.2)); const s0 = R() * 6.28, p = [];
+  for (let i = 0; i <= n * turns; i++) { const a = s0 + i / n * 6.283; p.push([Math.cos(a) * (rx + J(j)), Math.sin(a) * (ry + J(j))]); }
+  return p;
+}
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const line = (g, d, cls = "pen", w = 1.5, extra = {}) => el("path", { d, class: cls, "stroke-width": w, ...extra }, g);
+const dw = (g, d, cls = "pen", w = 1.4) => el("path", { d, class: "dw " + cls, "stroke-width": w, pathLength: 1 }, g);
+const fl = (g, d, fill) => el("path", { d, class: "fl", fill, stroke: "none" }, g);
+
+/* ---------- time ---------- */
+const DAY = 864e5;
+const dnum = s => { const [y, m, d] = String(s).split("-").map(Number); return Math.round(Date.UTC(y, m - 1, d) / DAY); };
+const nowD = new Date();
+const TODAY = Math.round(Date.UTC(nowD.getFullYear(), nowD.getMonth(), nowD.getDate()) / DAY);
+const fmtD = (dn, year) => { const d = new Date(dn * DAY); return `${d.getUTCDate()} ${T().months[d.getUTCMonth()]}${year ? " " + d.getUTCFullYear() : ""}`; };
+
+/* ---------- model: stops spaced by real days ---------- */
+const PX_DAY = 30, MIN_GAP = 220, PLAN_GAP = 300, LEAD = 300, CAR0 = 70, STEP = 6, W = 16, CH = 50;
+let M = null;
+function buildModel() {
+  const log = Array.isArray(DATA.log) ? DATA.log : [];
+  const dated = log.filter(e => e.started).map(e => ({ e, day: dnum(e.started) })).sort((a, b) => a.day - b.day);
+  const planned = log.filter(e => !e.started).map(e => ({ e }));
+  const stops = []; let s = LEAD, prev = null;
+  for (const x of dated) {
+    if (prev) s += Math.max(MIN_GAP, (x.day - prev.day) * PX_DAY);
+    x.s = s; x.gap = prev ? x.day - prev.day : null;
+    x.state = x.e.status === "done" ? "done" : x.day > TODAY ? "next" : "cur";
+    stops.push(x); prev = x;
+  }
+  const anchors = dated.map(x => [x.day, x.s]);
+  const dayToS = day => {
+    if (!anchors.length) return LEAD;
+    if (day <= anchors[0][0]) return anchors[0][1] + (day - anchors[0][0]) * PX_DAY;
+    for (let i = 1; i < anchors.length; i++) if (day <= anchors[i][0]) {
+      const [d0, s0] = anchors[i - 1], [d1, s1] = anchors[i]; return s0 + (s1 - s0) * (day - d0) / Math.max(1, d1 - d0);
+    }
+    const [dl, sl] = anchors[anchors.length - 1]; return sl + (day - dl) * PX_DAY;
+  };
+  const sToDay = sv => {
+    if (!anchors.length) return TODAY;
+    if (sv <= anchors[0][1]) return anchors[0][0] + (sv - anchors[0][1]) / PX_DAY;
+    for (let i = 1; i < anchors.length; i++) if (sv <= anchors[i][1]) {
+      const [d0, s0] = anchors[i - 1], [d1, s1] = anchors[i]; return d0 + (d1 - d0) * (sv - s0) / Math.max(1, s1 - s0);
+    }
+    const [dl, sl] = anchors[anchors.length - 1]; return dl + (sv - sl) / PX_DAY;
+  };
+  const todayS = Math.max(dayToS(TODAY), prev ? Math.min(prev.s, dayToS(TODAY)) : LEAD);
+  let ps = Math.max(todayS, prev ? prev.s : todayS);
+  for (const x of planned) { ps += PLAN_GAP; x.s = ps; x.state = "next"; stops.push(x); }
+  const consS = Math.max(ps, todayS, prev ? prev.s : 0) + 270;
+  const carMax = consS - 60, fogS = consS + 110, roadLen = consS + 1200;
+  // breaks are only calculated: the gap between one stage's end and the next stage's start.
+  // An open break (nothing started yet) counts full days up to yesterday; today is still undecided.
+  const idles = [];
+  dated.forEach((x, i) => {
+    if (x.state !== "done" || !x.e.finished) return;
+    const f = dnum(x.e.finished), nx = dated[i + 1], open = !(nx && nx.day <= TODAY);
+    const a = f + 1, b = open ? TODAY - 1 : nx.day - 1;
+    if (b < a) return;
+    idles.push({ s0: dayToS(a - .5), s1: dayToS(b + .5), d0: a, days: b - a + 1, ongoing: open, label: null });
+  });
+  idles.sort((p, q) => p.s0 - q.s0);
+  return { stops, dated, idles, dayToS, sToDay, todayS, consS, carMax, fogS, roadLen, firstDay: dated.length ? dated[0].day : TODAY };
+}
+
+/* ---------- road ---------- */
+let P = [];
+function buildRoad() {
+  const r = rng(11), a = r() * 6.28, b = r() * 6.28, c = r() * 6.28;
+  const n = Math.ceil(M.roadLen / STEP) + 2; P = []; let x = 0, y = 0;
+  for (let i = 0; i < n; i++) {
+    const s = i * STEP, h = .62 * Math.sin(s / 430 + a) + .3 * Math.sin(s / 185 + b) + .1 * Math.sin(s / 71 + c);
+    P.push({ x, y, h }); x += Math.cos(h) * STEP; y += Math.sin(h) * STEP;
+  }
+}
+function at(s) {
+  const f = Math.max(0, Math.min(P.length - 1.001, s / STEP)), i = Math.floor(f), t = f - i, p = P[i], q = P[i + 1];
+  return { x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t, h: p.h + (q.h - p.h) * t };
+}
+const nrm = h => [-Math.sin(h), Math.cos(h)];
+
+/* ---------- world ---------- */
+let built = false, builtLang = null, chunks = [], doodles = [], stopEls = [], bbox = null;
+let carS = CAR0, carA = 0, maxReached = CAR0, lastInkIdx = -1, lastPuff = 0, frame = 0;
+let W0 = 800, H0 = 600, Z = 1, cam = { tx: 0, ty: 0 }, trackLen = 1000, raf = 0, introCancel = null, noteStop = null, lastFocus = null;
+
+function build() {
+  M = buildModel(); buildRoad();
+  for (const id of ["j-scenery", "j-roadbed", "j-pencil", "j-ink", "j-signs", "j-weather", "j-stops", "j-dust", "j-carg", "j-fog"]) $j(id).replaceChildren();
+  let mnx = 1e9, mny = 1e9, mxx = -1e9, mxy = -1e9;
+  for (const p of P) { mnx = Math.min(mnx, p.x); mny = Math.min(mny, p.y); mxx = Math.max(mxx, p.x); mxy = Math.max(mxy, p.y); }
+  bbox = { x0: mnx - 900, y0: mny - 700, x1: mxx + 900, y1: mxy + 700 };
+  const g = $j("j-ground"); g.setAttribute("x", bbox.x0); g.setAttribute("y", bbox.y0); g.setAttribute("width", bbox.x1 - bbox.x0); g.setAttribute("height", bbox.y1 - bbox.y0);
+  drawRoad(); drawText(); drawScenery(); drawRain(); drawFog(); drawCar();
+  built = true; builtLang = L();
+  maxReached = Math.max(maxReached, carS, M.todayS); lastInkIdx = -1; updInk();
+}
+
+function edgeSet(i0, i1) {
+  const L1 = [], R1 = [], ph = 1.7;
+  for (let i = i0; i <= i1 && i < P.length; i++) {
+    const p = P[i], [nx, ny] = nrm(p.h), s = i * STEP, w = W + 1.1 * Math.sin(s / 37 + ph) + .6 * Math.sin(s / 13);
+    L1.push([p.x + nx * w, p.y + ny * w]); R1.push([p.x - nx * w, p.y - ny * w]);
+  }
+  return [L1, R1];
+}
+const poly = pts => pts.length ? "M" + pts.map(p => `${f1(p[0])} ${f1(p[1])}`).join(" L") : "";
+const shift = (pts, d) => pts.map(([x, y]) => [x + d, y + d * .6]);
+
+function drawRoad() {
+  const bed = $j("j-roadbed"), pen = $j("j-pencil"), ink = $j("j-ink");
+  const iCons = Math.round(M.consS / STEP), iToday = Math.round(M.todayS / STEP);
+  const center = (a, b) => poly(P.slice(a, b + 1).map(p => [p.x, p.y]));
+  line(bed, center(0, iCons + 4), "", W * 2 + 8, { stroke: "var(--paper)", fill: "none", "stroke-linecap": "round" });
+  const [bl, br] = edgeSet(0, iToday), [pl, pr] = edgeSet(iToday, iCons);
+  line(pen, poly(bl) + " " + poly(br), "pcl", .9, { opacity: .7 });
+  let c0 = 0;
+  for (const it of M.idles) {
+    const a = Math.round(it.s0 / STEP), b = Math.min(iToday, Math.round(it.s1 / STEP));
+    line(bed, center(a, b), "", W * 2 - 3, { stroke: "var(--wash)", fill: "none", "stroke-linecap": "butt" });
+    if (a > c0) line(pen, center(c0, a), "pcl", 1, { "stroke-dasharray": "7 13", opacity: .75 });
+    line(pen, center(a, b), "pcl", 1.6, { "stroke-dasharray": "0.1 9", opacity: .8 });
+    c0 = b;
+  }
+  if (iToday > c0) line(pen, center(c0, iToday), "pcl", 1, { "stroke-dasharray": "7 13", opacity: .75 });
+  line(pen, poly(pl) + " " + poly(pr), "pcl", 1.25, { "stroke-dasharray": "5 7" });
+  chunks = [];
+  for (let a = 0; a <= iToday; a += CH) {
+    const b = Math.min(a + CH, iToday), [l, r] = edgeSet(a, b);
+    const main = line(ink, "", "pen", 2.1), echo = line(ink, "", "pen", .8, { opacity: .45 });
+    chunks.push({ a, b, l, r, main, echo, st: -1 });
+  }
+  // survey stakes into the unknown
+  for (let s = M.consS + 70; s < M.fogS + 340; s += 62) {
+    const p = at(s), k = Math.max(.12, 1 - (s - M.consS) / 520);
+    line(pen, seg([[p.x - 4, p.y - 4], [p.x + 4, p.y + 4]], .6) + " " + seg([[p.x + 4, p.y - 4], [p.x - 4, p.y + 4]], .6), "pcl", 1.3, { opacity: k });
+  }
+}
+
+function updInk() {
+  const lim = Math.min(maxReached, M.todayS) / STEP, idx = Math.floor(lim);
+  if (idx === lastInkIdx) return; lastInkIdx = idx;
+  for (const c of chunks) {
+    let st = c.b <= idx ? 2 : c.a >= idx ? 0 : 1;
+    if (st === c.st && st !== 1) continue; c.st = st;
+    if (st === 0) { c.main.setAttribute("d", ""); c.echo.setAttribute("d", ""); continue; }
+    const n = st === 2 ? c.l.length : Math.max(0, idx - c.a + 1);
+    const l = c.l.slice(0, n), r = c.r.slice(0, n);
+    c.main.setAttribute("d", poly(l) + " " + poly(r));
+    c.echo.setAttribute("d", poly(shift(l, .9)) + " " + poly(shift(r, .9)));
+  }
+}
+
+/* ---------- stops, signs, labels (language dependent) ---------- */
+let blocks = [];
+function iconPath(kind) {
+  switch (kind) {
+    case "book": return "M-9 -5 Q-4.5 -8 0 -5 Q4.5 -8 9 -5 L9 6 Q4.5 3.5 0 6 Q-4.5 3.5 -9 6 Z M0 -5 L0 6";
+    case "video": return "M-4 -7 L7 0 L-4 7 Z";
+    case "article": case "guide": return "M-7 -6 L7 -6 M-7 -2 L7 -2 M-7 2 L5 2 M-7 6 L2 6";
+    case "course": return "M-10 -2 L0 -7 L10 -2 L0 3 Z M-5 0 L-5 5 Q0 8 5 5 L5 0";
+    case "project": return "M-3 -7 L-9 0 L-3 7 M3 -7 L9 0 L3 7";
+    case "talk": return "M-3 -8 L3 -8 L3 2 L-3 2 Z M-6 0 Q-6 6 0 6 Q6 6 6 0 M0 6 L0 9";
+    default: return "M0 -8 L2.4 -2.5 L8 -2.5 L3.5 1.2 L5.2 7 L0 3.6 L-5.2 7 L-3.5 1.2 L-8 -2.5 L-2.4 -2.5 Z";
+  }
+}
+function splitTitle(t) {
+  if (t.length <= 22) return [t];
+  const mid = t.length / 2; let best = -1;
+  for (let i = 0; i < t.length; i++) if (t[i] === " " && (best < 0 || Math.abs(i - mid) < Math.abs(best - mid))) best = i;
+  return best < 0 ? [t] : [t.slice(0, best), t.slice(best + 1)];
+}
+function stopMeta(x) {
+  const t = T();
+  if (x.state === "next") return x.day ? `${t.next} · ${fmtD(x.day)}` : t.next;
+  if (x.state === "cur") return `${t.since} ${fmtD(x.day)} · ${t.day(TODAY - x.day + 1)}`;
+  const end = x.e.finished ? dnum(x.e.finished) : x.day;
+  return `${fmtD(x.day)} · ${t.days(Math.max(1, end - x.day + 1))}`;
+}
+function drawText() {
+  R = rng(23);
+  const gs = $j("j-stops"), gn = $j("j-signs"), t = T();
+  gs.replaceChildren(); gn.replaceChildren(); stopEls = []; blocks = [];
+  M.stops.forEach((x, i) => {
+    const p = at(x.s), [nx, ny] = nrm(p.h), side = i % 2 ? 1 : -1;
+    const cx = p.x + nx * side * 66, cy = p.y + ny * side * 66, up = ny * side < 0;
+    x.cx = cx; x.cy = cy; x.side = side;
+    const kind = x.e.kind || "book", title = x.e.title?.[L()] || x.e.title?.pt || x.e.id;
+    const g = el("g", { class: `stop st-${x.state}`, tabindex: 0, role: "button", "aria-label": `${title}. ${stopMeta(x)}. ${t.openNotes}`, "data-stop": i }, gs);
+    const ex = p.x + nx * side * (W + 3), ey = p.y + ny * side * (W + 3), sx = cx - nx * side * 23, sy = cy - ny * side * 23;
+    line(g, seg([[ex, ey], [(ex + sx) / 2, (ey + sy) / 2], [sx, sy]], 1.2), x.state === "next" ? "pcl" : "pen", 1.5, x.state === "next" ? { "stroke-dasharray": "3 5" } : {});
+    const rg = el("g", { transform: `translate(${f1(cx)} ${f1(cy)})` }, g);
+    if (x.state === "cur") {
+      el("circle", { r: 21, fill: "none", stroke: "var(--car)", "stroke-width": 2, class: "pulse-ring" }, rg);
+      fl(rg, wob(ring(21), 1), "var(--car-tint)").style.opacity = 1;
+      line(rg, wob(ring(21), 1.2), "ring", 2.6, { fill: "none", stroke: "var(--car)", "stroke-linecap": "round" });
+      line(rg, iconPath(kind), "", 1.7, { fill: "none", stroke: "var(--car)", "stroke-linejoin": "round", "stroke-linecap": "round" });
+      const fx = up ? 14 : 14, fy = up ? -20 : -20;
+      line(rg, seg([[fx, fy], [fx + 1, fy - 34]], .8), "pen", 1.6);
+      el("path", { d: wob([[fx + 1, fy - 34], [fx + 22, fy - 29], [fx + 1, fy - 22]], .8, true), fill: "var(--car)", stroke: "var(--ink)", "stroke-width": 1.3, class: "flag", "stroke-linejoin": "round" }, rg);
+    } else if (x.state === "done") {
+      fl(rg, wob(ring(20), 1), "var(--wash)").style.opacity = 1;
+      line(rg, wob(ring(20), 1.2), "pen ring", 2.1);
+      line(rg, wob(ring(20), 1.6), "pen", .8, { opacity: .5 });
+      line(rg, iconPath(kind), "pen", 1.6);
+      el("circle", { cx: 15, cy: -15, r: 8, fill: "var(--paper)", stroke: "var(--ink)", "stroke-width": 1.5 }, rg);
+      line(rg, seg([[11, -15], [14, -11.5], [19.5, -19]], .4), "pen", 2);
+    } else {
+      line(rg, wob(ring(20), 1), "pcl ring", 1.6, { "stroke-dasharray": "3 5" });
+      line(rg, iconPath(kind), "pcl", 1.4);
+    }
+    const lines = splitTitle(title), meta = stopMeta(x), lg = el("g", { class: "lbl" }, g);
+    const tCol = x.state === "next" ? "var(--pencil)" : x.state === "cur" ? "var(--car)" : "var(--ink)";
+    let y0, yMeta;
+    if (up) { yMeta = cy - (x.state === "cur" ? 62 : 32); y0 = yMeta - 22 - (lines.length - 1) * 22; }
+    else { y0 = cy + 47; yMeta = y0 + (lines.length - 1) * 22 + 21; }
+    lines.forEach((ln, k) => { const tx = el("text", { x: f1(cx), y: f1(y0 + k * 22), "text-anchor": "middle", "font-size": 25, "font-weight": 600, fill: tCol }, lg); tx.textContent = ln; });
+    const mt = el("text", { x: f1(cx), y: f1(yMeta), "text-anchor": "middle", "font-size": 18, fill: "var(--pencil)" }, lg); mt.textContent = meta;
+    const wMax = Math.max(...lines.map(l => l.length * 11), meta.length * 8) / 2 + 8;
+    line(lg, seg([[cx - wMax * .7, yMeta + 6], [cx, yMeta + 7.5], [cx + wMax * .7, yMeta + 5]], .8), "uline", 1.6, { fill: "none", stroke: "var(--car)", pathLength: 1, "stroke-linecap": "round" });
+    const yt = Math.min(y0 - 24, cy - 26), yb = Math.max(yMeta + 10, cy + 26);
+    blocks.push({ x0: cx - wMax - 10, x1: cx + wMax + 10, y0: yt - 10, y1: yb + 10 });
+    stopEls.push(g); x.el = g;
+  });
+  // gap labels: days between starts, written along the roadside
+  M.stops.forEach((x, i) => {
+    if (!x.gap || i === 0) return;
+    const prevS = M.stops[i - 1].s; if (M.idles.some(it => it.s0 >= prevS - 2 && it.s1 <= x.s + 2)) return;
+    const prev = M.stops[i - 1], sm = (prev.s + x.s) / 2, p = at(sm), [nx, ny] = nrm(p.h), sd = -x.side;
+    const tx = el("text", { x: f1(p.x + nx * sd * 38), y: f1(p.y + ny * sd * 38 + 6), "text-anchor": "middle", "font-size": 19, fill: "var(--pencil)" }, gn);
+    tx.textContent = t.gap(x.gap);
+    blocks.push({ x0: p.x - 70, x1: p.x + 70, y0: p.y + ny * sd * 38 - 20, y1: p.y + ny * sd * 38 + 14 });
+  });
+  // breaks: a little camp beside the road
+  for (const it of M.idles) {
+    const sm = (it.s0 + it.s1) / 2, p = at(sm), [nx, ny] = nrm(p.h);
+    let sd = 0; for (const c of [1, -1]) if (!inBlock(p.x + nx * c * 58, p.y + ny * c * 58, 34)) { sd = c; break; }
+    if (!sd) sd = 1;
+    const cx = p.x + nx * sd * 58, cy = p.y + ny * sd * 58, g = el("g", { class: "camp" }, gn);
+    const tent = wob([[cx - 22, cy + 6], [cx - 9, cy - 16], [cx + 4, cy + 6]], .6, true);
+    fl(g, tent, "var(--car-tint)").style.opacity = 1;
+    line(g, tent, "pen", 1.6);
+    line(g, seg([[cx - 9, cy - 16], [cx - 9, cy + 6]], .3), "pen", 1.1);
+    line(g, seg([[cx - 13, cy + 6], [cx - 9, cy - 3], [cx - 5, cy + 6]], .3), "pen", 1);
+    line(g, seg([[cx + 9, cy + 7], [cx + 21, cy + 2]], .3) + " " + seg([[cx + 9, cy + 2], [cx + 21, cy + 7]], .3), "pen", 1.8);
+    el("path", { d: `M${f1(cx + 15)} ${f1(cy + 2)} q-5 -6 0 -13 q1 6 4 6 q2 4 -4 7 Z`, class: "flame", fill: "var(--car)", stroke: "var(--ink)", "stroke-width": 1 }, g);
+    const zz = el("text", { x: f1(cx - 2), y: f1(cy - 20), "font-size": 17, fill: "var(--pencil)", class: "zz" }, g); zz.textContent = "z z";
+    const up = ny * sd < 0;
+    const lt = el("text", { x: f1(cx - 4), y: f1(up ? cy - 34 : cy + 28), "text-anchor": "middle", "font-size": 19, fill: "var(--pencil)" }, g);
+    lt.textContent = t.idleDays(it.days);
+    if (it.label) { const l2 = el("text", { x: f1(cx - 4), y: f1(up ? cy - 54 : cy + 46), "text-anchor": "middle", "font-size": 17, fill: "var(--pencil)" }, g); l2.textContent = it.label; }
+    blocks.push({ x0: cx - 70, x1: cx + 60, y0: cy - 50, y1: cy + 36 });
+  }
+  // month boards at month changes
+  const d0 = new Date(M.firstDay * DAY);
+  for (let y = d0.getUTCFullYear(), m = d0.getUTCMonth() + 1; ; m++) {
+    if (m > 11) { m = 0; y++; }
+    const dn = Math.round(Date.UTC(y, m, 1) / DAY); if (dn > TODAY) break;
+    const s = M.dayToS(dn); if (M.stops.some(x => Math.abs(x.s - s) < 95)) continue;
+    const p = at(s), [nx, ny] = nrm(p.h);
+    let sd = 0; for (const c of [1, -1]) { const tx = p.x + nx * c * 48, ty = p.y + ny * c * 48; if (!inBlock(tx, ty, 26)) { sd = c; break; } }
+    if (!sd) continue;
+    const bx = p.x + nx * sd * 48, by = p.y + ny * sd * 48;
+    const g = el("g", {}, gn);
+    line(g, seg([[p.x + nx * sd * (W + 4), p.y + ny * sd * (W + 4)], [bx, by + 8]], .6), "pen", 1.4);
+    fl(g, wob([[bx - 37, by - 9], [bx + 37, by - 10], [bx + 38, by + 10], [bx - 36, by + 11]], .8, true), "var(--paper)").style.opacity = 1;
+    line(g, wob([[bx - 37, by - 9], [bx + 37, by - 10], [bx + 38, by + 10], [bx - 36, by + 11]], .8, true), "pen", 1.5);
+    const tx = el("text", { x: f1(bx), y: f1(by + 7), "text-anchor": "middle", "font-size": 19, "font-weight": 600 }, g);
+    tx.textContent = `${T().months[m]} ${y}`;
+    blocks.push({ x0: bx - 46, x1: bx + 46, y0: by - 22, y1: by + 22 });
+  }
+  // construction barrier and sign
+  const pc = at(M.consS), deg = pc.h * 180 / Math.PI, bg = el("g", { transform: `translate(${f1(pc.x)} ${f1(pc.y)}) rotate(${f1(deg)})` }, gn);
+  const bw = W + 12;
+  fl(bg, wob([[-5, -bw], [5, -bw], [5, bw], [-5, bw]], .6, true), "var(--paper)").style.opacity = 1;
+  line(bg, wob([[-5, -bw], [5, -bw], [5, bw], [-5, bw]], .7, true), "pen", 1.8);
+  for (let k = -bw + 4; k < bw - 2; k += 9) line(bg, seg([[-5, k], [5, k + 6]], .4), "", 2.6, { stroke: "var(--car)", "stroke-linecap": "round" });
+  for (const yy of [-bw - 12, bw + 12]) {
+    fl(bg, wob([[-7, yy + 6], [0, yy - 9], [7, yy + 6]], .5, true), "var(--car)").style.opacity = 1;
+    line(bg, wob([[-7, yy + 6], [0, yy - 9], [7, yy + 6]], .5, true), "pen", 1.4);
+    line(bg, seg([[-4, yy], [4, yy]], .3), "", 1.6, { stroke: "var(--paper)" });
+  }
+  const [cnx, cny] = nrm(pc.h);
+  const ct = el("text", { x: f1(pc.x - cnx * 118), y: f1(pc.y - cny * 118), "text-anchor": "middle", "font-size": 22, fill: "var(--pencil)" }, gn);
+  ct.textContent = t.building;
+  blocks.push({ x0: pc.x - 120, x1: pc.x + 120, y0: pc.y - 110, y1: pc.y + 110 });
+  // today pin when the car is not parked at a stop
+  const pt = at(M.todayS);
+  if (!M.stops.some(x => Math.abs(x.s - M.todayS) < 70)) {
+    const [tnx, tny] = nrm(pt.h), bx = pt.x - tnx * 46, by = pt.y - tny * 46;
+    const g = el("g", {}, gn);
+    line(g, seg([[pt.x - tnx * (W + 4), pt.y - tny * (W + 4)], [bx, by]], .6), "", 1.6, { stroke: "var(--car)", fill: "none" });
+    const tx = el("text", { x: f1(bx), y: f1(by - 6), "text-anchor": "middle", "font-size": 21, "font-weight": 600, fill: "var(--car)" }, g);
+    tx.textContent = `${t.today} · ${fmtD(TODAY)}`;
+  }
+  // fog caption
+  $j("j-fog").querySelectorAll("[data-fog]").forEach(n => n.remove());
+  const pf = at(M.fogS + 210), fc = el("text", { x: f1(pf.x), y: f1(pf.y + 8), "text-anchor": "middle", "font-size": 26, fill: "var(--pencil)" }, $j("j-fog"));
+  fc.textContent = t.fog; fc.dataset.fog = "1";
+  builtLang = L();
+}
+
+/* ---------- scenery ---------- */
+function nearRoad() {
+  const C = 100, H = new Map();
+  for (let i = 0; i < P.length; i += 3) { const k = Math.floor(P[i].x / C) + "," + Math.floor(P[i].y / C); (H.get(k) || H.set(k, []).get(k)).push(i); }
+  return (x, y) => {
+    const cx = Math.floor(x / C), cy = Math.floor(y / C); let best = 1e9, bi = -1;
+    for (let a = -3; a <= 3; a++) for (let b = -3; b <= 3; b++) {
+      const arr = H.get((cx + a) + "," + (cy + b)); if (!arr) continue;
+      for (const i of arr) { const d = (P[i].x - x) ** 2 + (P[i].y - y) ** 2; if (d < best) { best = d; bi = i; } }
+    }
+    return bi < 0 ? { d: 1e9, s: -1 } : { d: Math.sqrt(best), s: bi * STEP };
+  };
+}
+const inBlock = (x, y, pad = 0) => blocks.some(b => x > b.x0 - pad && x < b.x1 + pad && y > b.y0 - pad && y < b.y1 + pad);
+
+function doodle(type, x, y) {
+  const g = el("g", { class: "dd", transform: `translate(${f1(x)} ${f1(y)})` }, $j("j-scenery"));
+  g.style.setProperty("--d", (R() * .45).toFixed(2) + "s");
+  const k = .85 + R() * .45;
+  switch (type) {
+    case "tree": {
+      const r = (10 + R() * 6) * k, c = wob(ring(r, r * .92, 1.4), 1);
+      line(g, seg([[0, r * .7], [J(1), r + 9 * k]], .5), "dw pen", 1.5).setAttribute("pathLength", 1);
+      fl(g, c, "var(--leaf)"); dw(g, c, "pen", 1.5);
+      dw(g, wob([[-r * .45, r * .05], [-r * .2, -r * .3], [r * .15, -r * .35]], .6), "pen", 1);
+      break;
+    }
+    case "pine": {
+      const h = (22 + R() * 12) * k, w = h * .55;
+      const d = wob([[0, -h], [-w * .45, -h * .5], [-w * .22, -h * .5], [-w * .62, -h * .05], [w * .62, -h * .05], [w * .22, -h * .5], [w * .45, -h * .5], [0, -h]], .9);
+      fl(g, d + " Z", "var(--leaf)"); dw(g, d, "pen", 1.4); dw(g, seg([[0, -h * .05], [0, 6]], .3), "pen", 1.5);
+      break;
+    }
+    case "bush": {
+      const d = wob([[-12, 4], [-11, -3], [-5, -6], [-1, -2], [3, -8], [9, -4], [12, 4]], .8) + " Z";
+      fl(g, d, "var(--leaf)"); dw(g, d, "pen", 1.3); break;
+    }
+    case "grass": dw(g, seg([[-4, 3], [-6, -4]], .4) + " " + seg([[0, 3], [0, -6]], .4) + " " + seg([[4, 3], [6, -4]], .4), "pcl", 1.3); break;
+    case "flowers": {
+      for (const [fx, fy] of [[-5, -2], [2, -5], [6, 1]]) {
+        dw(g, seg([[fx, fy + 6], [fx, fy + 1]], .3), "pcl", 1.1);
+        el("circle", { cx: fx, cy: fy, r: 2.2, class: "fl", fill: "var(--car)", opacity: .75 }, g);
+      }
+      break;
+    }
+    case "rock": {
+      const r = (6 + R() * 5) * k, d = wob(ring(r, r * .7, 1.6, 1, 7), .6, true);
+      fl(g, d, "var(--wash)"); dw(g, d, "pen", 1.3); dw(g, seg([[r * .1, -r * .2], [r * .5, r * .2]], .3), "pcl", 1); break;
+    }
+    case "house": {
+      const walls = wob([[-11, 0], [-11, -14], [11, -14], [11, 0]], .5, true);
+      fl(g, walls, "var(--paper)"); dw(g, walls, "pen", 1.5);
+      const roof = seg([[-14, -13], [0, -26], [14, -13]], .6) + " Z";
+      fl(g, roof, "var(--car-tint)"); dw(g, roof, "pen", 1.5);
+      dw(g, seg([[-6, -16], [-2, -20]], .3) + " " + seg([[-2, -16], [3, -21]], .3) + " " + seg([[3, -16], [6, -19]], .3), "pcl", 1);
+      dw(g, seg([[-3, 0], [-3, -7], [2, -7], [2, 0]], .3), "pen", 1.3);
+      dw(g, seg([[5, -10], [9, -10], [9, -6], [5, -6]], .3) + " Z", "pen", 1.1);
+      dw(g, seg([[7, -19], [7, -25], [10, -25], [10, -16]], .3), "pen", 1.3);
+      el("path", { d: "M8.5 -28 q-3 -3 0 -6 q3 -3 0 -6", class: "pcl smoke", "stroke-width": 1.3 }, g);
+      break;
+    }
+    case "pond": {
+      const rx = (28 + R() * 16) * k, ry = rx * (.5 + R() * .15), d = wob(ring(rx, ry, 2, 1.04), 1.2, true);
+      fl(g, d, "var(--water)"); dw(g, d, "pen", 1.4);
+      el("path", { d: `M${-rx * .35} ${-ry * .1} q${rx * .12} -4 ${rx * .25} 0`, class: "pcl ripple", "stroke-width": 1.2 }, g);
+      el("path", { d: `M${rx * .05} ${ry * .3} q${rx * .1} -3 ${rx * .2} 0`, class: "pcl ripple", "stroke-width": 1.1, style: "animation-delay:-1.6s" }, g);
+      if (R() < .75) for (let q = 0; q < 1 + (R() < .5); q++) {
+        const sw = el("g", { class: "swim", style: `--sw:${f1(rx * .35)}px; animation-duration:${(7 + R() * 5).toFixed(1)}s; animation-delay:${(-R() * 8).toFixed(1)}s` }, g);
+        const dk = el("g", { transform: `translate(${f1(J(rx * .3))} ${f1(J(ry * .25))})` }, sw);
+        el("path", { d: wob(ring(5, 2.8, .4, 1.04, 9), .3, true), class: "fl", fill: "var(--paper)", stroke: "var(--ink)", "stroke-width": 1.1 }, dk);
+        el("circle", { cx: 4.2, cy: -3, r: 2, class: "fl", fill: "var(--paper)", stroke: "var(--ink)", "stroke-width": 1.1 }, dk);
+        el("path", { d: "M6 -3.3 L8.6 -2.6 L6 -2", class: "fl", fill: "var(--car)", stroke: "none" }, dk);
+        dw(dk, "M-6 1.5 q-3 .5 -6 0", "pcl", .9);
+      }
+      break;
+    }
+    case "mountain": {
+      const w = (60 + R() * 50) * k, h = w * (.45 + R() * .2);
+      const pts = [[-w / 2, 0], [-w * .22, -h * .7], [-w * .08, -h * .35], [w * .1, -h], [w / 2, 0]];
+      fl(g, wob(pts, .8) + " Z", "var(--wash)"); dw(g, wob(pts, 1), "pen", 1.6);
+      dw(g, seg([[w * .1 - h * .12, -h * .78], [w * .02, -h * .7], [w * .1, -h * .76], [w * .17, -h * .68], [w * .1 + h * .14, -h * .8]], .5), "pen", 1.1);
+      let hd = ""; for (let q = .2; q < .95; q += .14) { const x0 = w * .1 + (w * .4) * q, y0 = -h + h * q; hd += seg([[x0 - 2, y0 + 3], [x0 - 9, y0 + 10]], .4) + " "; }
+      dw(g, hd, "pcl", 1);
+      break;
+    }
+    case "field": {
+      const w = (34 + R() * 18) * k, h = w * (.55 + R() * .2), rot = J(18);
+      const box = wob([[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]], 1.4, true);
+      const gg = el("g", { transform: `rotate(${f1(rot)})` }, g);
+      fl(gg, box, "var(--wash)"); dw(gg, box, "pcl", 1.3);
+      let rows = ""; for (let yy = -h / 2 + 6; yy < h / 2 - 3; yy += 6) rows += seg([[-w / 2 + 4, yy], [w / 2 - 4, yy + J(1)]], .5) + " ";
+      dw(gg, rows, "pen", .9);
+      break;
+    }
+    case "boulders": {
+      for (const [bx, by, br] of [[-8, 2, 7], [5, -2, 9], [12, 6, 5]]) {
+        const d = wob(ring(br * k, br * k * .72, 1.4, 1, 7).map(([px, py]) => [px + bx, py + by]), .5, true);
+        fl(g, d, "var(--wash)"); dw(g, d, "pen", 1.3);
+      }
+      dw(g, seg([[3, -4], [7, 1]], .3), "pcl", 1);
+      break;
+    }
+    case "sheep": {
+      const flip = R() < .5 ? -1 : 1, sg = el("g", { transform: `scale(${flip} 1)` }, g);
+      for (const lx of [-4, -1, 3, 5]) dw(sg, seg([[lx, 3], [lx, 8]], .3), "pen", 1.3);
+      const body = wob(ring(8, 5.5, 1.8, 1.04, 14), .6, true);
+      fl(sg, body, "var(--paper)"); dw(sg, body, "pen", 1.3);
+      const head = el("g", { class: "graze", style: `animation-delay:${-R() * 5}s` }, sg);
+      el("ellipse", { cx: 8.5, cy: -1, rx: 3.2, ry: 2.4, class: "fl", fill: "var(--ink)" }, head);
+      break;
+    }
+    case "rabbit": {
+      const flip = R() < .5 ? -1 : 1, hop = el("g", { class: "hop", style: `animation-delay:${-R() * 3}s` }, g), rg = el("g", { transform: `scale(${flip} 1)` }, hop);
+      const body = wob(ring(5, 3.6, .7, 1.04, 10), .4, true);
+      fl(rg, body, "var(--wash)"); dw(rg, body, "pen", 1.2);
+      const head = wob(ring(2.6, 2.4, .4, 1.04, 8).map(([px, py]) => [px + 4.5, py - 3.5]), .3, true);
+      fl(rg, head, "var(--wash)"); dw(rg, head, "pen", 1.2);
+      dw(rg, seg([[4, -5.5], [3, -11]], .3) + " " + seg([[5.5, -5.5], [6.5, -10.5]], .3), "pen", 1.2);
+      el("circle", { cx: -5.2, cy: -1, r: 1.4, class: "fl", fill: "var(--paper)", stroke: "var(--ink)", "stroke-width": .8 }, rg);
+      break;
+    }
+    case "birds": {
+      const fg = el("g", { class: "birds" }, g);
+      for (let b = 0; b < 3; b++) el("path", { d: `M${b * 14 - 14} ${b % 2 * 7} q4 -5 7 0 q3 -5 7 0`, class: "pcl flapw", "stroke-width": 1.3, style: `animation-delay:${-b * .2}s` }, fg);
+      fg.animate && !RMo && fg.animate([{ transform: "translate(0,0)" }, { transform: `translate(${40 + R() * 40}px, ${J(14)}px)` }], { duration: 9000 + R() * 6000, iterations: Infinity, direction: "alternate", easing: "ease-in-out" });
+      break;
+    }
+  }
+  doodles.push({ x, y, g, on: false });
+}
+
+function drawScenery() {
+  R = rng(41); doodles = [];
+  const near = nearRoad(), occ = new Set(), G = 44, O = 18, nz = rng(5), a1 = nz() * 6, a2 = nz() * 6, a3 = nz() * 6;
+  const fogX = at(M.fogS).x - 60;
+  const take = (x, y, rad) => { const c = Math.max(1, Math.ceil(rad / O)), gx = Math.floor(x / O), gy = Math.floor(y / O);
+    for (let a = -c; a <= c; a++) for (let b = -c; b <= c; b++) if (occ.has((gx + a) + "," + (gy + b))) return false;
+    for (let a = -c; a <= c; a++) for (let b = -c; b <= c; b++) occ.add((gx + a) + "," + (gy + b)); return true; };
+  const stations = M.stops.map(x => [x.cx, x.cy]);
+  const free = (x, y, rad) => {
+    const nr = near(x, y);
+    if (nr.d < 40 + rad * .6) return null;
+    if (nr.s > M.fogS - 30 || (nr.s < 0 && x > fogX)) return null;
+    if (stations.some(([sx, sy]) => (sx - x) ** 2 + (sy - y) ** 2 < (64 + rad) ** 2) || inBlock(x, y, rad * .7 + 6)) return null;
+    return nr;
+  };
+  let rabbits = 0;
+  for (let gy = bbox.y0; gy < bbox.y1; gy += G) for (let gx = bbox.x0; gx < bbox.x1; gx += G) {
+    const x = gx + R() * G, y = gy + R() * G, nr0 = near(x, y), d = nr0.d;
+    const forest = Math.sin(x / 300 + a1) * Math.sin(y / 230 + a2) + .35 * Math.sin((x + y) / 140 + a3), r = R();
+    let type = null, rad = 12;
+    if (d > 190 && r < .1) { type = "mountain"; rad = 64; }
+    else if (d > 140 && r < .065) { type = "pond"; rad = 56; }
+    else if (d > 75 && d < 260 && r < .2) { type = R() < .4 ? "house" : "field"; rad = type === "house" ? 26 : 44; }
+    else if (forest > .62) { if (r < .7) { type = R() < .5 ? "pine" : "tree"; rad = 13; } }
+    else if (r < .3) { const q = R(); type = q < .26 ? "grass" : q < .56 ? "rock" : q < .66 ? "boulders" : q < .8 ? "flowers" : q < .88 ? "bush" : q < .95 ? "tree" : "pine"; rad = type === "boulders" ? 22 : 10; }
+    else if (r > .985 && d > 110) { type = "birds"; rad = 30; }
+    else if (r > .965 && d > 60 && rabbits < 9) { type = "rabbit"; rad = 12; }
+    if (!type || !free(x, y, rad) || !take(x, y, rad)) continue;
+    if (type === "rabbit") rabbits++;
+    doodle(type, x, y);
+    if (type === "pine" || type === "tree") for (let k = 0; k < 2; k++) {
+      const ox = x + J(30), oy = y + J(26);
+      if (free(ox, oy, 10) && take(ox, oy, 10)) doodle(R() < .6 ? type : (type === "pine" ? "tree" : "pine"), ox, oy);
+    }
+    if (type === "mountain" && R() < .6) { const ox = x + 50 + R() * 30, oy = y + J(14); if (free(ox, oy, 50) && take(ox, oy, 50)) doodle("mountain", ox, oy); }
+    if (type === "field" && R() < .65) for (let k = 0; k < 2 + (R() < .4); k++) { const ox = x + J(46), oy = y + 30 + R() * 16; if (free(ox, oy, 9) && take(ox, oy, 9)) doodle("sheep", ox, oy); }
+  }
+  doodles.sort((a, b) => a.y - b.y).forEach(d => d.g.parentNode.appendChild(d.g));
+}
+
+/* ---------- passing showers ---------- */
+function drawRain() {
+  R = rng(131); const g = $j("j-weather"); g.replaceChildren();
+  const span = Math.max(600, M.consS - 200), spots = [];
+  for (let k = 0; k < 3; k++) {
+    for (let tries = 0; tries < 12; tries++) {
+      const sv = 200 + span * (k + .2 + R() * .6) / 3, p = at(sv), [nx, ny] = nrm(p.h), side = R() < .5 ? -1 : 1, off = 150 + R() * 140;
+      const cx = p.x + nx * side * off, cy = p.y + ny * side * off - 40;
+      if (inBlock(cx, cy, 70) || inBlock(cx, cy + 70, 40) || spots.some(([x, y]) => Math.hypot(x - cx, y - cy) < 360)) continue;
+      spots.push([cx, cy]); break;
+    }
+  }
+  for (const [cx, cy] of spots) {
+    const sh = el("g", { class: "shower", style: `animation-delay:${(-R() * 20).toFixed(1)}s` }, g);
+    const w = 46 + R() * 18, drops = el("g", {}, sh);
+    for (let i = 0; i < 18; i++) {
+      const x = cx + J(w * .85), y = cy + 14 + R() * 10;
+      el("path", { d: `M${f1(x)} ${f1(y)} l-2.4 8`, class: "drop", style: `animation-delay:${(-R() * 1.2).toFixed(2)}s; animation-duration:${(.85 + R() * .45).toFixed(2)}s` }, drops);
+    }
+    for (let i = 0; i < 4; i++) el("ellipse", { cx: f1(cx + J(w * .7)), cy: f1(cy + 74 + J(6)), rx: 4, ry: 1.6, class: "splash", style: `animation-delay:${(-R() * 1.4).toFixed(2)}s` }, drops);
+    const cloud = [[-w, 6], [-w * .85, -8], [-w * .45, -16], [-w * .1, -24], [w * .3, -18], [w * .7, -14], [w, 0], [w * .8, 12], [-w * .8, 12]].map(([x, y]) => [cx + x, cy + y]);
+    el("path", { d: wob(cloud, 2, true), fill: "var(--paper)", stroke: "var(--pencil)", "stroke-width": 1.4, "stroke-linejoin": "round" }, sh);
+    el("path", { d: seg([[cx - w * .5, cy + 2], [cx + w * .3, cy + 3]], .8), class: "pcl", "stroke-width": 1, opacity: .6 }, sh);
+  }
+}
+
+/* ---------- fog over what isn't built yet ---------- */
+function drawFog() {
+  R = rng(77); const g = $j("j-fog"), puffs = [];
+  for (let s = M.fogS; s < M.roadLen + 400; s += 48) {
+    const p = at(Math.min(s, M.roadLen)), k = Math.min(1, (s - M.fogS) / 260), ext = s > M.roadLen ? (s - M.roadLen) : 0;
+    for (let o = -560; o <= 560; o += 92) {
+      if (k < .5 && Math.abs(o) > 380) continue;
+      const [nx, ny] = nrm(p.h), r = (34 + R() * 52) * (.65 + k * .55);
+      puffs.push([p.x + nx * (o + J(30)) + ext + J(20), p.y + ny * (o + J(30)) + J(20), r]);
+    }
+  }
+  puffs.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  for (const [x, y, r] of puffs) {
+    const pg = el("g", { transform: `translate(${f1(x)} ${f1(y)})` }, g), d = wob(ring(r, r * .82, 2.4, 1.02), 1.5, true);
+    const inner = el("g", { class: R() < .3 ? "puff-breathe" : null, style: `animation-delay:${-R() * 7}s` }, pg);
+    el("path", { d, fill: "var(--paper)", stroke: "var(--pencil)", "stroke-width": 1.2, "stroke-opacity": .55 }, inner);
+  }
+  const cap = g.querySelector("[data-fog]"); if (cap) g.appendChild(cap);
+}
+
+/* ---------- the car ---------- */
+let carG = null;
+function drawCar() {
+  R = rng(3); const g = $j("j-carg"); carG = el("g", {}, g);
+  const body = el("g", { id: "j-carbody" }, carG);
+  for (const [wx, wy] of [[-12, -12.5], [7, -12.5], [-12, 9.5], [7, 9.5]]) el("rect", { x: wx, y: wy, width: 8, height: 3.2, rx: 1, fill: "var(--ink)" }, body);
+  const shell = wob([[-18, -8], [-16, -10.5], [15, -10.5], [18.5, -6], [18.5, 6], [15, 10.5], [-16, 10.5], [-18, 8]], .5, true);
+  el("path", { d: shell, fill: "var(--car)", stroke: "var(--ink)", "stroke-width": 1.7, "stroke-linejoin": "round" }, body);
+  el("path", { d: "M3 -7.5 Q10 -7 11 0 Q10 7 3 7.5 Q5 0 3 -7.5 Z", fill: "var(--paper)", stroke: "var(--ink)", "stroke-width": 1.3, "stroke-linejoin": "round" }, body);
+  el("path", { d: "M-11 -6.5 Q-13.5 0 -11 6.5", fill: "none", stroke: "var(--ink)", "stroke-width": 1.3, "stroke-linecap": "round" }, body);
+  el("path", { d: "M-6 -9 L1 -9 M-6 9 L1 9", stroke: "var(--ink)", "stroke-width": 1, opacity: .6 }, body);
+  for (const hy of [-6, 6]) el("circle", { cx: 18.2, cy: hy, r: 1.7, fill: "var(--paper)", stroke: "var(--ink)", "stroke-width": 1 }, body);
+}
+function puff(x, y) {
+  const c = el("circle", { cx: f1(x), cy: f1(y), r: f1(2.5 + Math.random() * 3), fill: "var(--paper)", stroke: "var(--pencil)", "stroke-width": 1 }, $j("j-dust"));
+  c.style.transformBox = "fill-box"; c.style.transformOrigin = "center";
+  const a = c.animate([{ opacity: .85, transform: "scale(1)" }, { opacity: 0, transform: `scale(2.3) translate(${(Math.random() - .5) * 6}px, ${(Math.random() - .5) * 6}px)` }], { duration: 750, easing: "ease-out" });
+  a.onfinish = () => c.remove();
+}
+
+/* ---------- camera, scroll, HUD ---------- */
+const journey = () => $j("journey");
+function measure() {
+  const st = $j("j-stage"); W0 = st.clientWidth || innerWidth; H0 = st.clientHeight || innerHeight;
+  Z = W0 < 560 ? .74 : W0 < 900 ? .88 : 1;
+  trackLen = Math.max(600, (M.carMax - CAR0) * 1.12);
+  JTOP = journey().getBoundingClientRect().top + scrollY;
+  $j("j-track").style.height = trackLen + "px";
+}
+let JTOP = 0;
+const jTop = () => JTOP;
+const sToScroll = s => jTop() + (Math.max(CAR0, Math.min(M.carMax, s)) - CAR0) / (M.carMax - CAR0) * trackLen;
+function targetS() { const p = Math.max(0, Math.min(1, (scrollY - jTop()) / trackLen)); return CAR0 + p * (M.carMax - CAR0); }
+function goTo(s, smooth = true) { cancelIntro(); scrollTo({ top: sToScroll(s), behavior: smooth && !RMo ? "smooth" : "auto" }); }
+
+function tick(t) {
+  raf = requestAnimationFrame(tick);
+  if (journey().hidden || !M) return;
+  frame++;
+  const tgt = targetS(), prev = carS;
+  carS += (tgt - carS) * (RMo ? 1 : .14);
+  if (Math.abs(tgt - carS) < .05) carS = tgt;
+  const v = carS - prev;
+  if (carS > maxReached) { maxReached = carS; updInk(); for (const x of M.stops) if (x.el && maxReached >= x.s - 4) x.el.classList.add("reached"); }
+  const p = at(carS), dir = v < -.05 ? Math.PI : 0;
+  let ang = p.h + dir, da = ((ang - carA + Math.PI * 3) % (Math.PI * 2)) - Math.PI; carA += da * (RMo ? 1 : .18);
+  const bump = Math.abs(v) > .3 && !RMo ? Math.sin(t / 40) * .8 : 0;
+  carG.setAttribute("transform", `translate(${f1(p.x)} ${f1(p.y)}) rotate(${f1(carA * 180 / Math.PI + bump)})`);
+  if (Math.abs(v) > .7 && t - lastPuff > 55 && !RMo) { lastPuff = t; puff(p.x - Math.cos(carA) * 21 + (Math.random() - .5) * 8, p.y - Math.sin(carA) * 21 + (Math.random() - .5) * 8); }
+  cam.tx = W0 / 2 - p.x * Z; cam.ty = H0 * .54 - p.y * Z;
+  $j("j-cam").setAttribute("transform", `translate(${f1(cam.tx)} ${f1(cam.ty)}) scale(${Z})`);
+  if (frame % 4 === 0) reveal();
+  if (frame % 3 === 0) hud();
+}
+function reveal() {
+  const x0 = -cam.tx / Z - 40, y0 = -cam.ty / Z - 40, x1 = x0 + W0 / Z + 80, y1 = y0 + H0 / Z + 80;
+  for (const d of doodles) if (!d.on && d.x > x0 && d.x < x1 && d.y > y0 && d.y < y1) { d.on = true; d.g.classList.add("on"); }
+}
+let lastHud = "";
+function hud() {
+  const t = T();
+  const inIdle = M.idles.some(it => carS >= it.s0 && carS <= it.s1 + 2);
+  const label = carS > M.consS - 120 ? t.building : carS > M.todayS + 25 ? t.soon : fmtD(Math.round(M.sToDay(carS)), true) + (inIdle ? ` · ${t.idle}` : "");
+  let near = null, nd = 1e9;
+  for (const x of M.stops) { const d = Math.abs(x.s - carS); if (d < nd) { nd = d; near = x; } }
+  if (nd > 85) near = null;
+  const key = label + "|" + (near ? M.stops.indexOf(near) : -1) + "|" + Math.round(carS / 4);
+  if (key === lastHud) return; lastHud = key;
+  $j("j-date").textContent = label;
+  for (const x of M.stops) x.el && x.el.classList.toggle("near", x === near);
+  const ab = $j("j-arrive");
+  if (near) { ab.innerHTML = `${t.arrive} <em>${escJ(near.e.title?.[L()] || near.e.id)}</em> · ${t.openNotes}`; ab.dataset.show = "true"; ab.dataset.idx = M.stops.indexOf(near); }
+  else ab.dataset.show = "false";
+  $j("j-hint").style.opacity = carS > CAR0 + 260 && Math.abs(carS - M.todayS) > 30 ? 0 : 1;
+  drawStrip(true);
+}
+function drawStrip(onlyCar) {
+  const sv = $j("j-strip"), X = s => 22 + (Math.max(CAR0, Math.min(M.carMax, s)) - CAR0) / (M.carMax - CAR0) * 516;
+  if (!onlyCar || !sv.firstChild) {
+    R = rng(99); sv.replaceChildren();
+    el("path", { d: seg([[22, 20], [200, 21], [380, 19], [538, 20]], .6), class: "pcl", "stroke-width": 1.4, "stroke-dasharray": "4 5" }, sv);
+    el("path", { d: seg([[22, 20], [X(M.todayS) / 2 + 11, 20.6], [X(M.todayS), 19.6]], .4), class: "pen", "stroke-width": 2.2 }, sv);
+    for (const it of M.idles) {
+      el("path", { d: `M${f1(X(it.s0))} 20 L${f1(X(it.s1))} 20`, stroke: "var(--paper)", "stroke-width": 4, fill: "none" }, sv);
+      el("path", { d: `M${f1(X(it.s0))} 20 L${f1(X(it.s1))} 20`, class: "pcl", "stroke-width": 2, "stroke-dasharray": "0.1 5" }, sv);
+    }
+    M.stops.forEach((x, i) => {
+      const g = el("g", { class: "tick", "data-tick": i }, sv), cx = X(x.s);
+      el("circle", { cx, cy: 20, r: 12, fill: "transparent" }, g);
+      if (x.state === "done") el("circle", { cx, cy: 20, r: 4, fill: "var(--ink)" }, g);
+      else if (x.state === "cur") el("circle", { cx, cy: 20, r: 5.5, fill: "var(--car)", stroke: "var(--ink)", "stroke-width": 1.3 }, g);
+      else el("circle", { cx, cy: 20, r: 4, fill: "var(--paper)", stroke: "var(--pencil)", "stroke-width": 1.3 }, g);
+    });
+    el("path", { d: seg([[X(M.consS - 40) + 4, 13], [X(M.consS - 40) + 4, 27]], .3), class: "", stroke: "var(--car)", "stroke-width": 2.4, "stroke-linecap": "round" }, sv);
+    el("path", { id: "j-strip-car", d: "M-6 -4 L6 0 L-6 4 Z", fill: "var(--car)", stroke: "var(--ink)", "stroke-width": 1.2, "stroke-linejoin": "round" }, sv);
+  }
+  const c = $j("j-strip-car"); if (c) c.setAttribute("transform", `translate(${f1(X(carS))} 7) rotate(90)`);
+}
+
+/* ---------- notes sheet ---------- */
+function openNote(i) {
+  const x = M.stops[i]; if (!x) return; const t = T(), e = x.e, lg = L();
+  noteStop = i; lastFocus = document.activeElement;
+  const title = e.title?.[lg] || e.title?.pt || e.id;
+  const kind = t.kinds[e.kind] || e.kind || "";
+  let when;
+  if (x.state === "next") when = x.day ? `<b>${t.next}</b> · ${fmtD(x.day, true)}` : `<b>${t.next}</b>`;
+  else if (x.state === "cur") when = `${t.started} ${fmtD(x.day, true)} · <b>${t.inProgress} · ${t.day(TODAY - x.day + 1)}</b>`;
+  else { const end = e.finished ? dnum(e.finished) : x.day; when = `${fmtD(x.day, true)} → ${fmtD(end, true)} · <b>${t.days(Math.max(1, end - x.day + 1))}</b>`; }
+  const html = e.html?.[lg] || e.html?.pt || `<p><em>${t.noNotes}</em></p>`;
+  const links = (e.links || []).filter(l => l && l.url);
+  $j("j-note").innerHTML = `
+    <button type="button" class="x" id="j-x" aria-label="${t.close}"><svg viewBox="0 0 36 36"><path d="M10 9 Q18 17 26.5 27 M26 9.5 Q17 18 9.5 26.5"/></svg></button>
+    <div class="k">${escJ(kind)}${e.author ? " · " + escJ(e.author) : ""}</div>
+    <h2 id="j-note-t">${escJ(title)}</h2>
+    <div class="when">${when}</div>
+    <div class="md">${html}</div>
+    ${links.length ? `<div class="sec">${t.refs}</div><ul class="refs">${links.map(l => `<li><a href="${escJ(l.url)}" target="_blank" rel="noopener">${escJ(l.title || l.url)}</a></li>`).join("")}</ul>` : ""}`;
+  const n = $j("j-note"); n.hidden = false;
+  if (!RMo) n.animate([{ opacity: 0, transform: "translateY(14px) rotate(1.2deg)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: "cubic-bezier(.2,.8,.2,1)" });
+  $j("j-x").focus({ preventScroll: true });
+}
+function closeNote() {
+  const n = $j("j-note"); if (n.hidden) return; n.hidden = true; noteStop = null;
+  if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+}
+
+/* ---------- intro drive ---------- */
+let introDone = false;
+function cancelIntro() { if (introCancel) { introCancel(); introCancel = null; } }
+function intro() {
+  introDone = true; scrollTo(0, sToScroll(M.todayS));
+  carS = M.todayS; carA = at(carS).h;
+}
+for (const ev of ["wheel", "touchstart", "keydown", "pointerdown"]) addEventListener(ev, () => { if (introCancel && !journey().hidden) cancelIntro(); }, { passive: true });
+
+/* ---------- chrome and start ---------- */
+function chrome() {
+  const t = T(), au = DATA.site?.author;
+  document.documentElement.lang = L() === "pt" ? "pt-BR" : "en";
+  document.title = t.h;
+  $j("j-h").textContent = t.h; $j("j-sub").textContent = au ? `${au} · ${t.sub}` : t.sub; $j("j-now").textContent = t.now;
+  $j("j-hint").textContent = t.hint;
+  for (const b of document.querySelectorAll("[data-jlang]")) b.setAttribute("aria-pressed", String(b.dataset.jlang === L()));
+  $j("j-svg-t").textContent = t.h;
+  lastHud = "";
+}
+function start() {
+  if (!built) build();
+  chrome(); measure(); drawStrip();
+  if (!raf) raf = requestAnimationFrame(tick);
+  if (!introDone) intro();
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("#j-now")) { goTo(M.todayS); return; }
+  const jl = e.target.closest("[data-jlang]");
+  if (jl) { if (L() !== jl.dataset.jlang) { lang = jl.dataset.jlang; sset("rm-lang", lang); drawText(); drawStrip(); const keep = noteStop; if (keep != null) openNote(keep); } chrome(); return; }
+  if (e.target.closest("#j-x")) { closeNote(); return; }
+  const tk = e.target.closest("[data-tick]");
+  if (tk) { goTo(M.stops[+tk.dataset.tick].s); return; }
+  const ar = e.target.closest("#j-arrive");
+  if (ar && ar.dataset.show === "true") { openNote(+ar.dataset.idx); return; }
+  const st = e.target.closest("[data-stop]");
+  if (st) { openNote(+st.dataset.stop); return; }
+  if (!e.target.closest("#j-note") && !$j("j-note").hidden) closeNote();
+});
+document.addEventListener("keydown", e => {
+  if (journey().hidden) return;
+  if (e.key === "Escape") { closeNote(); return; }
+  const st = e.target.closest && e.target.closest("[data-stop]");
+  if (st && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openNote(+st.dataset.stop); return; }
+  if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && !e.target.closest("input,textarea")) { e.preventDefault(); scrollBy({ top: e.key === "ArrowRight" ? 140 : -140, behavior: RMo ? "auto" : "smooth" }); }
+});
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (journey().hidden || !M) return; const s = carS; measure(); drawStrip(); scrollTo(0, sToScroll(s)); }, 120); });
+
+/* first paint */
+const go = () => start();
+chrome();
+Promise.race([document.fonts ? document.fonts.load("600 25px Caveat").then(() => document.fonts.ready) : Promise.resolve(), new Promise(r => setTimeout(r, 900))]).then(go, go);
+})();
+</script>
